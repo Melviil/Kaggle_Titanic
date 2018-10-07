@@ -44,3 +44,25 @@ table(full$Sex, full$Title)
 full$Surname <- sapply(full$Name,  
                        function(x) strsplit(x, split = '[,.]')[[1]][1])
 cat(paste('We have <b>', nlevels(factor(full$Surname)), '</b> unique surnames. I would be interested to infer ethnicity based on surname --- another time.'))
+
+# Create a family size variable including the passenger themselves
+full$Fsize <- full$SibSp + full$Parch + 1
+
+# Create a family variable 
+full$Family <- paste(full$Surname, full$Fsize, sep='_')
+
+# Use ggplot2 to visualize the relationship between family size & survival
+ggplot(full[1:891,], aes(x = Fsize, fill = factor(Survived))) +
+  geom_bar(stat='count', position='dodge') +
+  scale_x_continuous(breaks=c(1:11)) +
+  labs(x = 'Family Size') +
+  theme_few()
+
+# Discretize family size
+full$FsizeD[full$Fsize == 1] <- 'singleton'
+full$FsizeD[full$Fsize < 5 & full$Fsize > 1] <- 'small'
+full$FsizeD[full$Fsize > 4] <- 'large'
+
+# Show family size by survival using a mosaic plot
+mosaicplot(table(full$FsizeD, full$Survived), main='Family Size by Survival', shade=TRUE)
+
