@@ -107,3 +107,35 @@ ggplot(full[full$Pclass == '3' & full$Embarked == 'S', ],
   theme_few()
 
 full$Fare[1044] <- median(full[full$Pclass == '3' & full$Embarked == 'S', ]$Fare, na.rm = TRUE)
+
+# Show number of missing Age values
+sum(is.na(full$Age))
+
+# Make variables factors into factors
+factor_vars <- c('PassengerId','Pclass','Sex','Embarked',
+                 'Title','Surname','Family','FsizeD')
+
+full[factor_vars] <- lapply(full[factor_vars], function(x) as.factor(x))
+
+# Set a random seed
+set.seed(129)
+
+# Perform mice imputation, excluding certain less-than-useful variables:
+mice_mod <- mice(full[, !names(full) %in% c('PassengerId','Name','Ticket','Cabin','Family','Surname','Survived')], method='rf') 
+
+# Save the complete output 
+mice_output <- complete(mice_mod)
+
+# Plot age distributions
+par(mfrow=c(1,2))
+hist(full$Age, freq=F, main='Age: Original Data', 
+     col='darkgreen', ylim=c(0,0.04))
+hist(mice_output$Age, freq=F, main='Age: MICE Output', 
+     col='lightgreen', ylim=c(0,0.04))
+
+# Replace Age variable from the mice model.
+full$Age <- mice_output$Age
+
+# Show new number of missing Age values
+sum(is.na(full$Age))
+
