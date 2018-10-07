@@ -139,3 +139,29 @@ full$Age <- mice_output$Age
 # Show new number of missing Age values
 sum(is.na(full$Age))
 
+# First we'll look at the relationship between age & survival
+ggplot(full[1:891,], aes(Age, fill = factor(Survived))) + 
+  geom_histogram() + 
+  # I include Sex since we know (a priori) it's a significant predictor
+  facet_grid(.~Sex) + 
+  theme_few()
+
+# Create the column child, and indicate whether child or adult
+full$Child[full$Age < 18] <- 'Child'
+full$Child[full$Age >= 18] <- 'Adult'
+
+# Show counts
+table(full$Child, full$Survived)
+
+# Adding Mother variable
+full$Mother <- 'Not Mother'
+full$Mother[full$Sex == 'female' & full$Parch > 0 & full$Age > 18 & full$Title != 'Miss'] <- 'Mother'
+
+# Show counts
+table(full$Mother, full$Survived)
+
+# Finish by factorizing our two new factor variables
+full$Child  <- factor(full$Child)
+full$Mother <- factor(full$Mother)
+
+md.pattern(full)
