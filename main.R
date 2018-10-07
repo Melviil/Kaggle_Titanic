@@ -66,3 +66,44 @@ full$FsizeD[full$Fsize > 4] <- 'large'
 # Show family size by survival using a mosaic plot
 mosaicplot(table(full$FsizeD, full$Survived), main='Family Size by Survival', shade=TRUE)
 
+# This variable appears to have a lot of missing values
+full$Cabin[1:28]
+
+# The first character is the deck. For example:
+strsplit(full$Cabin[2], NULL)[[1]]
+
+# Create a Deck variable. Get passenger deck A - F:
+full$Deck<-factor(sapply(full$Cabin, function(x) strsplit(x, NULL)[[1]][1]))
+
+# Passengers 62 and 830 are missing Embarkment
+full[c(62, 830), 'Embarked']
+
+cat(paste('We will infer their values for **embarkment** based on present data that we can imagine may be relevant: **passenger class** and **fare**. We see that they paid<b> $', full[c(62, 830), 'Fare'][[1]][1], '</b>and<b> $', full[c(62, 830), 'Fare'][[1]][2], '</b>respectively and their classes are<b>', full[c(62, 830), 'Pclass'][[1]][1], '</b>and<b>', full[c(62, 830), 'Pclass'][[1]][2], '</b>. So from where did they embark?'))
+
+# Get rid of our missing passenger IDs
+embark_fare <- full %>%
+  filter(PassengerId != 62 & PassengerId != 830)
+
+# Use ggplot2 to visualize embarkment, passenger class, & median fare
+ggplot(embark_fare, aes(x = Embarked, y = Fare, fill = factor(Pclass))) +
+  geom_boxplot() +
+  geom_hline(aes(yintercept=80), 
+             colour='red', linetype='dashed', lwd=2) +
+  scale_y_continuous(labels=dollar_format()) +
+  theme_few()
+
+# Since their fare was $80 for 1st class, they most likely embarked from 'C'
+full$Embarked[c(62, 830)] <- 'C'
+
+# Show row 1044
+full[1044, ]
+
+ggplot(full[full$Pclass == '3' & full$Embarked == 'S', ], 
+       aes(x = Fare)) +
+  geom_density(fill = '#99d6ff', alpha=0.4) + 
+  geom_vline(aes(xintercept=median(Fare, na.rm=T)),
+             colour='red', linetype='dashed', lwd=1) +
+  scale_x_continuous(labels=dollar_format()) +
+  theme_few()
+
+full$Fare[1044] <- median(full[full$Pclass == '3' & full$Embarked == 'S', ]$Fare, na.rm = TRUE)
