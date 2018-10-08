@@ -175,7 +175,7 @@ set.seed(754)
 
 # Build the model (note: not all possible variables are used)
 rf_model <- randomForest(factor(Survived) ~ Pclass + Sex + Age + SibSp + Parch + 
-                           Fare + Embarked + Title + 
+                           Fare + Embarked + Title  +
                            FsizeD + Child + Mother,
                          data = train)
 
@@ -210,3 +210,4 @@ solution <- data.frame(PassengerID = test$PassengerId, Survived = prediction)
 
 # Write the solution to file
 write.csv(solution, file = 'rf_mod_Solution.csv', row.names = F)
+
